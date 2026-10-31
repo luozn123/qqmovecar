@@ -1,0 +1,7 @@
+# 海外 VPS + 域名时的 Caddy 配置 (自动 HTTPS, 无需手动申请证书)
+# 用法: 把 your-domain.com 换成你的域名, A 记录指向海外 VPS 公网 IP,
+# 然后在 VPS 上: caddy run --config /opt/movecar/Caddyfile --adapter caddyfile
+# app.py 保持默认 HOST=127.0.0.1 PORT=8000, 不要对外暴露 8000
+your-domain.com {
+    reverse_proxy 127.0.0.1:8000
+}

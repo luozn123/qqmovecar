@@ -1,0 +1,16 @@
+[Unit]
+Description=Move car QR notify service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/movecar
+EnvironmentFile=/opt/movecar/.env
+ExecStart=/usr/bin/python3 /opt/movecar/app.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
