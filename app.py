@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-"""
-挪车提醒服务 
-"""
 import hashlib
 import html
 import json
@@ -18,18 +15,15 @@ SECRET = os.environ.get("QQ_SECRET", "")
 OWNER_OPENID = os.environ.get("OWNER_OPENID", "")
 PORT = int(os.environ.get("PORT", "8000"))
 HOST = os.environ.get("HOST", "127.0.0.1")
-GLOBAL_COOLDOWN = int(os.environ.get("GLOBAL_COOLDOWN", "60"))   # 全局 1 分钟
-IP_COOLDOWN = int(os.environ.get("IP_COOLDOWN", "120"))           # 单 IP 2 分钟
+GLOBAL_COOLDOWN = int(os.environ.get("GLOBAL_COOLDOWN", "60"))
+IP_COOLDOWN = int(os.environ.get("IP_COOLDOWN", "120"))
 LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "movecar.log")
 
 _token_cache = {"token": "", "expires_at": 0}
 _last_success_at = 0.0
 _last_by_ip: dict[str, float] = {}
-# Button-only gate: each GET / issues a single-use token embedded in the
-# form; POST /notify without a valid unused token never sends QQ. This
-# stops direct curl POSTs to /notify and replayed/refresh-resubmitted POSTs.
 _tokens: dict[str, float] = {}
-TOKEN_TTL = 1800  # 30 minutes, long enough for a passer-by to read and tap
+TOKEN_TTL = 1800
 
 
 def _new_token() -> str:
@@ -140,8 +134,6 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
         if parsed.path == "/notify":
-            # Opening /notify directly never sends: send the visitor to the
-            # form page, where a fresh single-use token is issued.
             self._redirect("/"); return
         if parsed.path in ("/", "/index.html"):
             done = parse_qs(parsed.query).get("done", [""])[0]
@@ -168,14 +160,10 @@ class Handler(BaseHTTPRequestHandler):
         ip_hash = hashlib.sha256(ip.encode()).hexdigest()[:12]
         now = time.time()
 
-        # Button-only gate: no valid single-use token = no QQ send, ever.
-        # Direct curl POSTs, bookmarked /notify pages and replayed POSTs
-        # all land here.
         if not _consume_token((fields.get("token", [""])[0] or "")):
             log(f"reject-notoken ip_hash={ip_hash} note={note!r}")
             self._redirect("/?done=token"); return
 
-        # 防刷: 先查冷却, 冷却期内不消耗 QQ 额度, 但给路人一个"已通知"的反馈
         if now - _last_success_at < GLOBAL_COOLDOWN:
             log(f"cooldown-global ip_hash={ip_hash} note={note!r}")
             self._redirect("/?done=cooldown"); return
@@ -187,8 +175,6 @@ class Handler(BaseHTTPRequestHandler):
         if ok:
             _last_success_at = now
             _last_by_ip[ip_hash] = now
-            # POST-Redirect-GET: result page lives at /, so refreshing it
-            # cannot resubmit the POST.
             self._redirect("/?done=ok")
         else:
             self._redirect("/?done=fail")
