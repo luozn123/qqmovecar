@@ -13,28 +13,19 @@
   textarea { width: 100%; height: 44px; padding: 10px 2px; font-size: 16px; border: 0; border-bottom: 1px solid #ddd; background: transparent; outline: none; resize: none; text-align: center; }
   textarea::placeholder { color: #bbb; }
   button { width: 100%; margin-top: 40px; padding: 17px; font-size: 17px; font-weight: 600; color: #fff; background: #111; border: 0; border-radius: 999px; cursor: pointer; }
-  button:disabled { background: #999; cursor: default; }
-  .ok { display: none; margin-top: 28px; color: #555; font-size: 15px; line-height: 1.8; }
-  .ok.show { display: block; }
-  .preview { font-size: 12px; color: #999; margin-bottom: 40px; }
+  .msg { margin-top: 28px; color: #555; font-size: 15px; line-height: 1.8; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="preview">预览版：点按钮只模拟成功</div>
   <h1>通知车主挪车</h1>
   <p class="sub">点击下方按钮，车主会收到提醒。</p>
-  <textarea id="note" maxlength="200" placeholder="留言（可选）"></textarea>
-  <button id="btn" type="button">通知车主</button>
-  <div id="ok" class="ok">已通知车主<br><span style="color:#999;font-size:14px;">请稍等片刻</span></div>
+  <form method="post" action="/notify">
+    <input type="hidden" name="token" value="__TOKEN__">
+    <textarea name="note" maxlength="200" placeholder="留言（可选）"></textarea>
+    <button type="submit">通知车主</button>
+  </form>
+  __MSG__
 </div>
-<script>
-  document.getElementById('btn').addEventListener('click', function () {
-    var btn = document.getElementById('btn');
-    btn.disabled = true;
-    btn.textContent = '已通知';
-    document.getElementById('ok').classList.add('show');
-  });
-</script>
 </body>
 </html>
